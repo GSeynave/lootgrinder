@@ -10,26 +10,27 @@ export default class Tilemap {
   spawnTile: Tile = new Tile()
   exitTile: Tile = new Tile()
   ennemyTiles: Tile[] = []
-  nbEnnemy: number = 4
+  nbEnnemy: number = 10
   pathToNextDirection: Tile[] = []
 
   constructor(nbCol: number, nbRow: number) {
     this.nbCol = nbCol
     this.nbRow = nbRow
-    this.tiles = this.generateMap()
+    this.generateMap().then((value)=> this.tiles = value)
   }
 
-  private generateMap(): Tile[][] {
+  public async generateMap(): Promise<Tile[][]> {
     this.initMap().then(() => {
       this.setSpecificTile(this.nbEnnemy, TileType.ENNEMY)
       this.setSpecificTile(1, TileType.SPAWN)
       this.setSpecificTile(1, TileType.EXIT)
     })
-    return this.tiles
+    return Promise.resolve(this.tiles)
   }
 
   // Generate a map : 2 dimentional array of Tile ( pos x, pos y and tile type)
   private async initMap(): Promise<Tile[][]> {
+    this.tiles = new Array<Array<Tile>>()
     for (let y: number = 0; y < this.nbRow; y++) {
       const row = new Array<Tile>()
       for (let x: number = 0; x < this.nbCol; x++) {
@@ -83,9 +84,19 @@ export default class Tilemap {
 
   // Get the next path (list of tile) from a tile posiitonning
   // Will look for closest ennemy target first, if none will return the full tile path for the exit
-  public getNextTargetPath(startX: number, startY: number): Tile[] {
+  public getNextTargetPath(startX: number = this.teamTile.posX, startY: number =this.teamTile.posY): Tile[] {
     const nextTargetTile = this.getNextTarget(startX, startY)
     return this.getTargetPath(startX, startY, nextTargetTile)
+  }
+
+  public getNextTileToTravel(){
+    console.log('set pathtonextdirection',this.pathToNextDirection)
+    if (this.pathToNextDirection && this.pathToNextDirection.length <= 0){
+      console.log('set pathtonextdirection',this.pathToNextDirection)
+      this.getNextTargetPath(this.teamTile.posX, this.teamTile.posY)
+      return this.pathToNextDirection.shift()!
+    }
+    return this.pathToNextDirection.shift()!
   }
 
   public isBiggerThan(value1: number, value2: number): boolean {
@@ -104,7 +115,7 @@ export default class Tilemap {
           ? calculatedPos.posX - 1
           : calculatedPos.posX + 1
         this.pathToNextDirection.push(
-          Object.assign({}, this.getTileFromPos(calculatedPos.posX, calculatedPos.posY))
+          Object.assign(new Tile(), this.getTileFromPos(calculatedPos.posX, calculatedPos.posY))
         )
       } else {
         isSameX = true
@@ -114,7 +125,7 @@ export default class Tilemap {
           ? calculatedPos.posY - 1
           : calculatedPos.posY + 1
         this.pathToNextDirection.push(
-          Object.assign({}, this.getTileFromPos(calculatedPos.posX, calculatedPos.posY))
+          Object.assign(new Tile(), this.getTileFromPos(calculatedPos.posX, calculatedPos.posY))
         )
       } else {
         isSameY = true
@@ -150,6 +161,11 @@ export default class Tilemap {
         this.ennemyTiles.splice(index, 1)
       }
     }
+  }
+
+  setTeamPosition(tile: Tile): void {
+    this.teamTile = Object.assign(new Tile(), tile)
+    this.teamTile.tileType == TileType.TEAM
   }
 
   /* TODO

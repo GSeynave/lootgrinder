@@ -24,6 +24,7 @@
 # <a name="SaveSystem"></a>Save system,
 
 - Simply save by store data in the browser's store at first.
+- Manage the page reload (same as going to the website, load the save, should be done in the mount())
 
 # <a name="CraftingSystem"></a>Crafting system
 
